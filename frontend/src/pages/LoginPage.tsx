@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import type { LoginForm } from '../types'
+import { login } from '../api/auth'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -8,16 +9,23 @@ function LoginPage() {
     email: '',
     password: '',
   })
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('ログイン:', form)
-    navigate('/passwords')
+    try {
+      const res = await login(form.email, form.password)
+      localStorage.setItem('token', res.token)
+      navigate('/passwords')
+    } catch {
+      setError('メールアドレスまたはパスワードが間違っています')
+    }
   }
 
   return (
     <div style={{ maxWidth: '400px', margin: '100px auto', padding: '0 20px' }}>
       <h1>Password Manager</h1>
+      {error && <div style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
           <label>メールアドレス</label>

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 function SettingsPage() {
   const navigate = useNavigate()
 
+  const email = localStorage.getItem('email') ?? 'ユーザー'
+
   const handleLogout = () => {
     if (confirm('ログアウトしますか？')) {
-      // 後でAPIと繋げる
+      localStorage.removeItem('token')
       navigate('/')
     }
   }
@@ -19,7 +21,7 @@ function SettingsPage() {
 
       <div style={{ marginBottom: '16px', padding: '16px', border: '1px solid #ccc', borderRadius: '8px' }}>
         <div style={{ color: '#666', fontSize: '14px' }}>アカウント情報</div>
-        <div>user@email.com</div>
+        <div>{email}</div>
       </div>
 
       <button

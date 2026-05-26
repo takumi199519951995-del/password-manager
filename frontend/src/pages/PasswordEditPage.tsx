@@ -1,64 +1,49 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import type { PasswordForm, Password } from '../types'
-
-// ダミーデータ（後でAPIと繋げる）
-const dummyPasswords: Password[] = [
-  {
-    id: '1',
-    serviceName: 'Amazon',
-    username: 'user@email.com',
-    password: 'password123',
-    url: 'https://amazon.co.jp',
-    memo: 'プライムあり',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-  {
-    id: '2',
-    serviceName: 'Gmail',
-    username: 'user@gmail.com',
-    password: 'password456',
-    url: 'https://gmail.com',
-    createdAt: '2024-01-02',
-    updatedAt: '2024-01-02',
-  },
-  {
-    id: '3',
-    serviceName: 'Netflix',
-    username: 'user@email.com',
-    password: 'password789',
-    url: 'https://netflix.com',
-    createdAt: '2024-01-03',
-    updatedAt: '2024-01-03',
-  },
-]
+import type { PasswordForm } from '../types'
+import { getPassword, updatePassword } from '../api/passwords'
 
 function PasswordEditPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const [showPassword, setShowPassword] = useState(false)
-
-  const target = dummyPasswords.find((p) => p.id === id)
-
+  const [error, setError] = useState('')
   const [form, setForm] = useState<PasswordForm>({
-    serviceName: target?.serviceName ?? '',
-    username: target?.username ?? '',
-    password: target?.password ?? '',
-    url: target?.url ?? '',
-    category: target?.category ?? '',
-    memo: target?.memo ?? '',
+    serviceName: '',
+    username: '',
+    password: '',
+    url: '',
+    category: '',
+    memo: '',
   })
 
-  if (!target) {
-    return <div>パスワードが見つかりません</div>
-  }
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const data = await getPassword(id!)
+        setForm({
+          serviceName: data.serviceName,
+          username: data.username,
+          password: data.password,
+          url: data.url ?? '',
+          category: data.category ?? '',
+          memo: data.memo ?? '',
+        })
+      } catch {
+        navigate('/passwords')
+      }
+    }
+    fetch()
+  }, [id, navigate])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // 後でAPIと繋げる
-    console.log('更新:', form)
-    navigate(`/passwords/${id}`)
+    try {
+      await updatePassword(id!, form)
+      navigate(`/passwords/${id}`)
+    } catch {
+      setError('更新に失敗しました')
+    }
   }
 
   return (
@@ -67,6 +52,8 @@ function PasswordEditPage() {
         <button onClick={() => navigate(`/passwords/${id}`)}>← 戻る</button>
         <h1>編集</h1>
       </div>
+
+      {error && <div style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '16px' }}>

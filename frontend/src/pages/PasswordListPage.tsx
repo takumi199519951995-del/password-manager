@@ -1,42 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Password } from '../types'
-
-// ダミーデータ（後でAPIと繋げる）
-const dummyPasswords: Password[] = [
-  {
-    id: '1',
-    serviceName: 'Amazon',
-    username: 'user@email.com',
-    password: 'password123',
-    url: 'https://amazon.co.jp',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-  {
-    id: '2',
-    serviceName: 'Gmail',
-    username: 'user@gmail.com',
-    password: 'password456',
-    url: 'https://gmail.com',
-    createdAt: '2024-01-02',
-    updatedAt: '2024-01-02',
-  },
-  {
-    id: '3',
-    serviceName: 'Netflix',
-    username: 'user@email.com',
-    password: 'password789',
-    url: 'https://netflix.com',
-    createdAt: '2024-01-03',
-    updatedAt: '2024-01-03',
-  },
-]
+import { getPasswords } from '../api/passwords'
 
 function PasswordListPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [passwords] = useState<Password[]>(dummyPasswords)
+  const [passwords, setPasswords] = useState<Password[]>([])
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const data = await getPasswords()
+        setPasswords(data)
+      } catch {
+        navigate('/')
+      }
+    }
+    fetch()
+  }, [navigate])
 
   const filtered = passwords.filter((p) =>
     p.serviceName.toLowerCase().includes(search.toLowerCase())
@@ -46,7 +28,10 @@ function PasswordListPage() {
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Password Manager</h1>
-        <button onClick={() => navigate('/passwords/new')}>+ 追加</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/passwords/new')}>+ 追加</button>
+          <button onClick={() => navigate('/settings')}>設定</button>
+        </div>
       </div>
 
       <input
@@ -73,6 +58,12 @@ function PasswordListPage() {
           <div style={{ color: '#666', fontSize: '14px' }}>{password.username}</div>
         </div>
       ))}
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign: 'center', color: '#666', marginTop: '32px' }}>
+          パスワードが登録されていません
+        </div>
+      )}
     </div>
   )
 }

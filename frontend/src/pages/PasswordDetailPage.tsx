@@ -1,49 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { Password } from '../types'
-
-// ダミーデータ（後でAPIと繋げる）
-const dummyPasswords: Password[] = [
-  {
-    id: '1',
-    serviceName: 'Amazon',
-    username: 'user@email.com',
-    password: 'password123',
-    url: 'https://amazon.co.jp',
-    memo: 'プライムあり',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-  {
-    id: '2',
-    serviceName: 'Gmail',
-    username: 'user@gmail.com',
-    password: 'password456',
-    url: 'https://gmail.com',
-    createdAt: '2024-01-02',
-    updatedAt: '2024-01-02',
-  },
-  {
-    id: '3',
-    serviceName: 'Netflix',
-    username: 'user@email.com',
-    password: 'password789',
-    url: 'https://netflix.com',
-    createdAt: '2024-01-03',
-    updatedAt: '2024-01-03',
-  },
-]
+import { getPassword, deletePassword } from '../api/passwords'
 
 function PasswordDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const [password, setPassword] = useState<Password | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const password = dummyPasswords.find((p) => p.id === id)
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const data = await getPassword(id!)
+        setPassword(data)
+      } catch {
+        navigate('/passwords')
+      }
+    }
+    fetch()
+  }, [id, navigate])
 
   if (!password) {
-    return <div>パスワードが見つかりません</div>
+    return <div>読み込み中...</div>
   }
 
   const handleCopy = () => {
@@ -52,9 +32,9 @@ function PasswordDetailPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm('削除しますか？')) {
-      // 後でAPIと繋げる
+      await deletePassword(id!)
       navigate('/passwords')
     }
   }

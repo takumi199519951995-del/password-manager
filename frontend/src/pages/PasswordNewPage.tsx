@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { PasswordForm } from '../types'
+import { createPassword } from '../api/passwords'
 
 function PasswordNewPage() {
   const navigate = useNavigate()
@@ -13,12 +14,16 @@ function PasswordNewPage() {
     memo: '',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // 後でAPIと繋げる
-    console.log('追加:', form)
-    navigate('/passwords')
+    try {
+      await createPassword(form)
+      navigate('/passwords')
+    } catch {
+      setError('保存に失敗しました')
+    }
   }
 
   return (
@@ -27,6 +32,8 @@ function PasswordNewPage() {
         <button onClick={() => navigate('/passwords')}>← 戻る</button>
         <h1>新規追加</h1>
       </div>
+
+      {error && <div style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '16px' }}>
@@ -68,7 +75,6 @@ function PasswordNewPage() {
               {showPassword ? '隠す' : '表示'}
             </button>
           </div>
-
         </div>
 
         <div style={{ marginBottom: '16px' }}>
